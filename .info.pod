@@ -1,0 +1,1 @@
+--[[pod,author="abledbody",created="2024-08-28 23:15:48",modified="2024-09-05 19:10:18",notes="A simple Blade3D template cart where\nyou can look at a teapot from various\nangles.",runtime=10,title="Blade3D Teapot Demo",version="v2",workspaces={{location="main.lua#25",workspace_index=1},{location="gfx/0.gfx",workspace_index=2}}]]
