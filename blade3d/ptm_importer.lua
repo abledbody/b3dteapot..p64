@@ -69,7 +69,7 @@ return function(path,material_lookup)
 	local materials = {}
 	local norms = userdata("f64",3,tri_count)
 	local face_dists = userdata("f64",tri_count)
-	local sorting_points = userdata("f64",4,tri_count)
+	local sorting_points = userdata("f64",3,tri_count)
 	
 	for i = 0,tri_count-1 do
 		local mat_name = ptm_mats[mat_indices[i]]
@@ -105,8 +105,7 @@ return function(path,material_lookup)
 		-- duh, so any point will do.
 		face_dists[i] = p1:dot(norm)
 		
-		sorting_points:copy((p1+p2+p3)/3,true,0,i*4,3)
-		sorting_points[i*4+3] = i*3
+		sorting_points:copy((p1+p2+p3)/3,true,0,i*3,3)
 	end
 	
 	---@class PtmModel

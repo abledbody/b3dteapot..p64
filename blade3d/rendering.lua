@@ -386,18 +386,17 @@ local function queue_model(model,mat,imat)
 	-- point to the camera.
 	local sorting_points = model.sorting_points
 	local cam_sort_points = sorting_points:sub(
-		relative_cam_pos,false,0,0,3,0,4,sorting_points:height()
+		relative_cam_pos,false,0,0,3,0,3,sorting_points:height()
 	)
 	-- Square the components.
-	cam_sort_points:mul(cam_sort_points,true,0,0,3,0,4,cam_sort_points:height())
+	cam_sort_points:mul(cam_sort_points,true)
 	
 	-- Since this distance is only used in comparisons, we can cheap out and
 	-- skip the square root.
-	local depths = userdata("f64",2,cam_sort_points:height())
-	depths:add(cam_sort_points,true,0,1,1,3,2,cam_sort_points:height()) -- X
-	depths:add(cam_sort_points,true,1,1,1,3,2,cam_sort_points:height()) -- Y
-	depths:add(cam_sort_points,true,2,1,1,3,2,cam_sort_points:height()) -- Z
-	depths:copy(cam_sort_points,true,3,0,1,4,2,cam_sort_points:height()) -- Index
+	local depths = userdata("f64",cam_sort_points:height())
+	depths:add(cam_sort_points,true,0,0,1,3,1,cam_sort_points:height()) -- X
+	depths:add(cam_sort_points,true,1,0,1,3,1,cam_sort_points:height()) -- Y
+	depths:add(cam_sort_points,true,2,0,1,3,1,cam_sort_points:height()) -- Z
 	profile"Depth determination"
 	
 	-- The model's data has been, and will be, aggressively mutated, so a new one

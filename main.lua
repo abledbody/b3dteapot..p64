@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2024-09-04 23:51:40",modified="2024-09-05 19:10:18",revision=77]]
+--[[pod_format="raw",created="2024-09-04 23:51:40",modified="2024-09-11 03:56:57",revision=82]]
 include"require.lua"
 include"profiler.lua"
 
@@ -8,7 +8,7 @@ local Camera = require"blade3d.camera"
 local quat = require"blade3d.quaternions"
 local B3dUtils = require"blade3d.utils"
 
-profile.enabled(true,true)
+profile.enabled(false,true)
 
 -- The materials table tells the ptm importer what each
 -- material name in the model file should be rendered with.
