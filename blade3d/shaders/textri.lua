@@ -26,8 +26,8 @@ return function(props,p1,p2,p3,uv1,uv2,uv3,screen_height)
 		p1,p2,uv1,uv2 = p2,p1,uv2,uv1
 	end
 	
-	-- Since the y components are used extensively, we'll store them in
-	-- local variables. Not sure I can justify doing the same for w.
+	-- Since the y and w components are used extensively, we'll store them in
+	-- local variables.
 	local y1,y2,y3,w1,w2,w3 = p1.y,p2.y,p3.y,p1[3],p2[3],p3[3]
 	
 	-- To get perspective correct interpolation, we need to multiply
@@ -36,32 +36,31 @@ return function(props,p1,p2,p3,uv1,uv2,uv3,screen_height)
 	uv2 *= w2
 	uv3 *= w3
 	
-	local t = (p2.y-p1.y)/(p3.y-p1.y)
+	local t = (y2-y1)/(y3-y1)
 	local uvd = (uv3-uv1)*t+uv1
-	local v1,v2,v3 = 
-		vec(spr,p1.x,p1.y,p1.x,p1.y,uv1.x,uv1.y,uv1.x,uv1.y,w1,w1),
+	local v1,v2 = 
+		vec(spr,p1.x,y1,p1.x,y1,uv1.x,uv1.y,uv1.x,uv1.y,w1,w1),
 		vec(
 			spr,
-			p2.x,p2.y,
-			(p3.x-p1.x)*t+p1.x, p2.y,
+			p2.x,y2,
+			(p3.x-p1.x)*t+p1.x, y2,
 			uv2.x,uv2.y,
 			uvd.x,uvd.y,
 			w2, (w3-w1)*t+w1
-		),
-		vec(spr,p3.x,p3.y,p3.x,p3.y,uv3.x,uv3.y,uv3.x,uv3.y,w3,w3)
+		)
 	profile"Triangle setup"
 	
 	profile"Triangle drawing"
 	-- Top half
 	local start_y = y1 > 0 and y1 or 0
 	local stop_y = (y2 <= screen_height and y2 or screen_height)
-	local dy = flr(stop_y)-flr(start_y)
-	if y2 >= 0 and y1 < screen_height and dy > 0 then
+	local dy = (stop_y\1)-(start_y\1)
+	if dy > 0 then
 		local slope = (v2-v1)/(y2-y1)
 		
 		tline3d(userdata("f64",11,dy+1)
-			:copy((start_y-y1)*slope+v1,true)
-			:copy((stop_y-y1)*slope+v1,true,0,dy*11)
+			:copy(slope*(start_y-y1)+v1,true)
+			:copy(slope*(stop_y-y1)+v1,true,0,dy*11)
 			:lerp(0,dy,11,11,1)
 		)
 	end
@@ -69,13 +68,15 @@ return function(props,p1,p2,p3,uv1,uv2,uv3,screen_height)
 	-- Bottom half
 	start_y = y2 > 0 and y2 or 0
 	stop_y = (y3 <= screen_height and y3 or screen_height)
-	dy = flr(stop_y)-flr(start_y)
-	if y3 >= 0 and y2 < screen_height and dy > 0 then
-		local slope = (v3-v2)/(y3-y2)
+	dy = (stop_y\1)-(start_y\1)
+	if dy > 0 then
+		-- This is, otherwise, the only place where v3 would be used,
+		-- so we just inline it.
+		local slope = (vec(spr,p3.x,y3,p3.x,y3,uv3.x,uv3.y,uv3.x,uv3.y,w3,w3)-v2)/(y3-y2)
 		
 		tline3d(userdata("f64",11,dy+1)
-			:copy((start_y-y2)*slope+v2,true)
-			:copy((stop_y-y2)*slope+v2,true,0,dy*11)
+			:copy(slope*(start_y-y2)+v2,true)
+			:copy(slope*(stop_y-y2)+v2,true,0,dy*11)
 			:lerp(0,dy,11,11,1)
 		)
 	end

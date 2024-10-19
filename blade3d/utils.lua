@@ -55,7 +55,7 @@ function Utils.sort(arr,key)
         -- where the pivot is already at the boundary between buckets.
         local pivot
         do -- The local variables here can be discarded after pivot selection.
-            local pivot_i = flr((max+min)/2)
+            local pivot_i = ((max+min)/2)\1
             pivot = arr[pivot_i][key]
             
             local first = arr[min][key]
