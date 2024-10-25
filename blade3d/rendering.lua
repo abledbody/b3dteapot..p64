@@ -418,8 +418,6 @@ end
 ---@param col integer @The color of the line.
 ---@param mat userdata @The line's transformation matrix.
 local function queue_line(p1,p2,col,mat)
-	-- This one was thrown together as a minor feature, so it still needs some
-	-- work.
 	p1,p2 = p1:matmul(mat),p2:matmul(mat)
 	
 	local relative_cam_pos = (p1+p2)*0.5-camera.position
@@ -428,7 +426,7 @@ local function queue_line(p1,p2,col,mat)
 	local vp = camera:get_vp_matrix()
 	p1,p2 = p1:matmul(vp),p2:matmul(vp)
 	
-	if	   p1.z >  p1[3] or  p2.z >  p2[3]
+	if	   p1.z >  p1[3] and p2.z >  p2[3]
 		or p1.z < -p1[3] and p2.z < -p2[3]
 		or p1.x >  p1[3] and p2.x >  p2[3]
 		or p1.x < -p1[3] and p2.x < -p2[3]
@@ -436,6 +434,16 @@ local function queue_line(p1,p2,col,mat)
 		or p1.y < -p1[3] and p2.y < -p2[3]
 	then return end
 	
+	if p1.z >  p1[3] or  p2.z > p2[3] then
+		-- We'll call the point behind the camera p2.
+		if p1.z < p2.z then
+			p1, p2 = p2, p1
+		end
+		
+		local diff2 = p2-p1
+		p2 = diff2*(p1.z-p1[3])/(diff2.z+diff2[3])+p1
+	end
+
 	p1,p2 =
 		perspective_point(p1)
 			:mul(camera.cts_mul,true,0,0,3)
