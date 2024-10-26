@@ -1,9 +1,10 @@
---[[pod_format="raw",created="2024-09-04 23:51:40",modified="2024-10-22 22:16:16",revision=92]]
+--[[pod_format="raw",created="2024-09-04 23:51:40",modified="2024-10-26 19:58:30",revision=202]]
 include"require.lua"
 include"profiler.lua"
 
 local import_ptm = require"blade3d.ptm_importer"
 local Rendering = require"blade3d.rendering"
+local Transform = require"blade3d.transform"
 local Camera = require"blade3d.camera"
 local quat = require"blade3d.quaternions"
 local B3dUtils = require"blade3d.utils"
@@ -14,15 +15,14 @@ profile.enabled(false,true)
 -- material name in the model file should be rendered with.
 local materials = {
 	Teapot = {
-		shader = require"blade3d.shaders.textri",
-		properties = {tex = 1}
+		shader = require"blade3d.shaders.flatfill",
 	},
 }
 
 local model = import_ptm("mdl/teapot.ptm",materials)
 local model_mat = B3dUtils.ident_mat(4) -- Gets a matrix with no transformations
 
-local cam_yaw,cam_pitch = 0,-0.1
+local cam_yaw,cam_pitch = 0,0
 local cam_vel = vec(0,0,0)
 local cam_dist = 6
 local cam
@@ -57,11 +57,30 @@ end
 function _draw()
 	cls()
 	
-	-- Since model_mat is an identity matrix, it is its own inverse,
-	-- but in practice you would generate a separate matrix for the
-	-- inverse transformation.
-	Rendering.queue_model(model,model_mat,model_mat)
+	-- Get the rotated matrix and inverse matrix
+	local rot_matrix, inv_rot_matrix = Transform.double_rotate(vec(t()/16,t()/8,t()/32), model_mat, model_mat)
+	
+	-- Tell the renderer to render the model with the rotated matricies
+	Rendering.queue_model(model,rot_matrix,inv_rot_matrix,vec(0.70,0.71,0.0))
+	
+	-- Draw and animate a cool grid effect
+	draw_grid(Transform.translate(vec(0,-10,(t()*40)%40)))
+	draw_grid(Transform.translate(vec(0,10,(t()*40)%40)))
+
 	Rendering.draw_all()
 	
 	profile.draw()
+end
+
+function draw_grid(mat)
+	for x = 0, 20 do
+		local scale = 40 * x
+		local v1 = vec(scale-400,0,-400,1)
+		local v2 = vec(scale-400,0,400,1)
+		local v3 = vec(400,0,scale-400,1)
+		local v4 = vec(-400,0,scale-400,1)
+		
+		Rendering.queue_line(v1,v2,8,mat)
+		Rendering.queue_line(v3,v4,8,mat)
+	end
 end

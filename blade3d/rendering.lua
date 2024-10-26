@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2024-05-22 18:18:28",modified="2024-08-28 23:16:33",revision=18317]]
+--[[pod_format="raw",created="2024-05-22 18:18:28",modified="2024-10-26 19:58:30",revision=18407]]
 local Utils = require"blade3d.utils"
 local sort = Utils.tab_sort
 
@@ -245,15 +245,19 @@ local function clip_tris(model)
 		indices = gen_indices,
 		skip_tris = {},
 		materials = gen_materials,
-		depths = gen_depths
+		depths = gen_depths,
+		norms = model.norms,
+		light_pos = model.light_pos
 	}
 end
 
 local function draw_model(model,cts_mul,cts_add,screen_height)
 	local pts,uvs,indices,
-		skip_tris,materials,depths =
+		skip_tris,materials,depths,
+		norms,light_pos =
 			model.pts,model.uvs,model.indices,
-			model.skip_tris,model.materials,model.depths
+			model.skip_tris,model.materials,model.depths,
+			model.norms,model.light_pos
 	
 	profile"Perspective"
 	pts = perspective_points(pts:copy(pts))
@@ -276,7 +280,10 @@ local function draw_model(model,cts_mul,cts_add,screen_height)
 				uvs:row(tri_i+2)
 			
 			local material = materials[j]
-			local shader,properties = material.shader,material.properties
+			local shader,properties = material.shader, (material.properties or {})
+			-- not sure if it's a good idea to let properties not be a table sometimes, but that's how it's done
+			
+			properties.light = (norms:row(j):dot(light_pos)+1)/2
 			
 			add(draw_queue,{
 				func = function()
@@ -353,11 +360,15 @@ end
 ---@param model table @The model to queue.
 ---@param mat userdata @The model's transformation matrix.
 ---@param imat userdata @The inverse of the model's transformation matrix.
-local function queue_model(model,mat,imat)
+---@param light_vec userdata @The direction of the light hitting this model
+local function queue_model(model,mat,imat,light_vec)
 	profile"Backface culling"
 	local skip_tris = {}
 	local face_dists = model.face_dists
 	local relative_cam_pos = camera.position:matmul3d(imat)
+	
+	light_vec = light_vec or vec(0,1,0)
+	local light_pos = light_vec:matmul3d(imat)
 	
 	-- Each face, in addition to a normal, has a length. This length is the
 	-- the distance between the origin and the plane that the face sits on, and
@@ -405,7 +416,9 @@ local function queue_model(model,mat,imat)
 		tex = model.tex,
 		skip_tris = skip_tris,
 		materials = model.materials,
-		depths = depths
+		depths = depths,
+		norms = model.norms,
+		light_pos = light_pos
 	})
 	
 	return true
