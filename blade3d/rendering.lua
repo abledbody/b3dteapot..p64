@@ -280,14 +280,15 @@ local function draw_model(model,cts_mul,cts_add,screen_height)
 				uvs:row(tri_i+2)
 			
 			local material = materials[j]
-			local shader,properties = material.shader, (material.properties or {})
-			-- not sure if it's a good idea to let properties not be a table sometimes, but that's how it's done
-			
-			properties.light = (norms:row(j):dot(light_pos)+1)/2
+			local shader,properties = material.shader, material.properties
+			local props_in = {
+				light = properties.light and (norms:row(j):dot(light_pos)+1)/2
+			}
+			setmetatable(props_in,{__index = properties})
 			
 			add(draw_queue,{
 				func = function()
-					shader(properties,p1,p2,p3,uv1,uv2,uv3,screen_height)
+					shader(props_in,p1,p2,p3,uv1,uv2,uv3,screen_height)
 				end,
 				z = depths[j]
 			})
