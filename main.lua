@@ -15,7 +15,11 @@ profile.enabled(false,true)
 -- material name in the model file should be rendered with.
 local materials = {
 	Teapot = {
-		shader = require"blade3d.shaders.flatfill",
+		shader = require"blade3d.shaders.lambtri",
+		properties = {
+			color_ramp = {32,1,21,5,13,22,6,7},
+			light = true,
+		},
 	},
 }
 
