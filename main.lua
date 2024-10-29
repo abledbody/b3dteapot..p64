@@ -20,7 +20,10 @@ local materials = {
 }
 
 local model = import_ptm("mdl/teapot.ptm",materials)
-local model_mat = B3dUtils.ident_mat(4) -- Gets a matrix with no transformations
+
+local grid_spacing = 40
+local grid_lines = 20
+local grid_separation = 40
 
 local cam_yaw,cam_pitch = 0,0
 local cam_vel = vec(0,0,0)
@@ -57,15 +60,16 @@ end
 function _draw()
 	cls()
 	
-	-- Get the rotated matrix and inverse matrix
-	local rot_matrix, inv_rot_matrix = Transform.double_rotate(vec(t()/16,t()/8,t()/32), model_mat, model_mat)
+	-- Get the model matrix and its inverse. The only transformation is rotation.
+	local model_mat, model_mat_inv =
+		Transform.double_rotate(vec(t()/16,t()/8,t()/32))
 	
-	-- Tell the renderer to render the model with the rotated matricies
-	Rendering.queue_model(model,rot_matrix,inv_rot_matrix,vec(0.70,0.71,0.0))
+	-- Tell Blade3D to draw the model with the given matrix on the next draw_all.
+	Rendering.queue_model(model,model_mat,model_mat_inv,vec(0.70,0.71,0.0))
 	
 	-- Draw and animate a cool grid effect
-	draw_grid(Transform.translate(vec(0,-10,(t()*40)%40)))
-	draw_grid(Transform.translate(vec(0,10,(t()*40)%40)))
+	draw_grid(Transform.translate(vec(0,-10,(t()*grid_separation)%grid_spacing)))
+	draw_grid(Transform.translate(vec(0,10,(t()*grid_separation)%grid_spacing)))
 
 	Rendering.draw_all()
 	
@@ -73,12 +77,14 @@ function _draw()
 end
 
 function draw_grid(mat)
-	for x = 0, 20 do
-		local scale = 40 * x
-		local v1 = vec(scale-400,0,-400,1)
-		local v2 = vec(scale-400,0,400,1)
-		local v3 = vec(400,0,scale-400,1)
-		local v4 = vec(-400,0,scale-400,1)
+	local length = grid_lines*grid_spacing*0.5
+	
+	for x = -grid_lines*0.5, grid_lines*0.5 do
+		local offset = x*grid_spacing
+		local v1 = vec(offset,0,-length,1)
+		local v2 = vec(offset,0,length,1)
+		local v3 = vec(length,0,offset,1)
+		local v4 = vec(-length,0,offset,1)
 		
 		Rendering.queue_line(v1,v2,8,mat)
 		Rendering.queue_line(v3,v4,8,mat)
