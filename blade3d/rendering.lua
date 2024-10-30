@@ -113,7 +113,7 @@ local function clip_tris(model)
 						quad_clips,
 						{
 							inside[1],inside[2],outside[1],
-							materials[i],depths[i],lums[i]
+							materials[i],depths[i],lums and lums[i]
 						}
 					)
 				else
@@ -121,7 +121,7 @@ local function clip_tris(model)
 						tri_clips,
 						{
 							inside[1],outside[1],outside[2],
-							materials[i],depths[i],lums[i]
+							materials[i],depths[i],lums and lums[i]
 						}
 					)
 				end
@@ -141,7 +141,7 @@ local function clip_tris(model)
 	local gen_indices = userdata("i64",3,gen_tri_count)
 	local gen_materials = {}
 	local gen_depths = userdata("f64",gen_tri_count)
-	local gen_lums = userdata("f64",gen_tri_count)
+	local gen_lums = lums and userdata("f64",gen_tri_count)
 	
 	-- vert_i and tri_i mutate differently for triangles and quads.
 	local vert_i = 0
@@ -187,7 +187,9 @@ local function clip_tris(model)
 		-- Copy over the extra data from the original triangle.
 		gen_materials[tri_i] = verts[4]
 		gen_depths[tri_i] = verts[5]
-		gen_lums[tri_i] = verts[6]
+		if lums then
+			gen_lums[tri_i] = verts[6]
+		end
 		
 		vert_i += 3
 		tri_i += 1
@@ -242,8 +244,10 @@ local function clip_tris(model)
 		gen_materials[tri_i+1] = verts[4]
 		gen_depths[tri_i] = verts[5]
 		gen_depths[tri_i+1] = verts[5]
-		gen_lums[tri_i] = verts[6]
-		gen_lums[tri_i+1] = verts[6]
+		if lums then
+			gen_lums[tri_i] = verts[6]
+			gen_lums[tri_i+1] = verts[6]
+		end
 		
 		vert_i += 4
 		tri_i += 2
