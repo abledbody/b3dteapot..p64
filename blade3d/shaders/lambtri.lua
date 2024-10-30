@@ -1,6 +1,6 @@
+--[[pod_format="raw",created="2024-10-26 19:38:52",modified="2024-10-26 19:58:30",revision=73]]
 local trifill = require"blade3d.shaders.trifill"
 
---[[pod_format="raw",created="2024-10-26 19:38:52",modified="2024-10-26 19:58:30",revision=73]]
 ---Draws a shaded triangle to the screen.
 ---@param props table The properties passed to the shader. Expects a `light` field that determines the color of the triangle.
 ---@param p1 userdata The XY coordinates of the first vertex.

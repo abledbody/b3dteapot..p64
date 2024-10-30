@@ -49,9 +49,9 @@ end
 ---@return table? @A new model containing every clipped triangle.
 local function clip_tris(model)
 	local pts,uvs,indices,
-		skip_tris,materials,depths =
+		skip_tris,materials,depths,lums =
 			model.pts,model.uvs,model.indices,
-			model.skip_tris,model.materials,model.depths
+			model.skip_tris,model.materials,model.depths,model.lums
 	
 	local tri_clips = {}
 	local quad_clips = {}
@@ -111,12 +111,18 @@ local function clip_tris(model)
 				if #outside == 1 then
 					add(
 						quad_clips,
-						{inside[1],inside[2],outside[1],materials[i],depths[i]}
+						{
+							inside[1],inside[2],outside[1],
+							materials[i],depths[i],lums[i]
+						}
 					)
 				else
 					add(
 						tri_clips,
-						{inside[1],outside[1],outside[2],materials[i],depths[i]}
+						{
+							inside[1],outside[1],outside[2],
+							materials[i],depths[i],lums[i]
+						}
 					)
 				end
 			end
@@ -135,6 +141,7 @@ local function clip_tris(model)
 	local gen_indices = userdata("i64",3,gen_tri_count)
 	local gen_materials = {}
 	local gen_depths = userdata("f64",gen_tri_count)
+	local gen_lums = userdata("f64",gen_tri_count)
 	
 	-- vert_i and tri_i mutate differently for triangles and quads.
 	local vert_i = 0
@@ -180,6 +187,7 @@ local function clip_tris(model)
 		-- Copy over the extra data from the original triangle.
 		gen_materials[tri_i] = verts[4]
 		gen_depths[tri_i] = verts[5]
+		gen_lums[tri_i] = verts[6]
 		
 		vert_i += 3
 		tri_i += 1
@@ -234,6 +242,8 @@ local function clip_tris(model)
 		gen_materials[tri_i+1] = verts[4]
 		gen_depths[tri_i] = verts[5]
 		gen_depths[tri_i+1] = verts[5]
+		gen_lums[tri_i] = verts[6]
+		gen_lums[tri_i+1] = verts[6]
 		
 		vert_i += 4
 		tri_i += 2
@@ -246,8 +256,7 @@ local function clip_tris(model)
 		skip_tris = {},
 		materials = gen_materials,
 		depths = gen_depths,
-		norms = model.norms,
-		light_pos = model.light_pos
+		lums = gen_lums
 	}
 end
 
@@ -429,7 +438,6 @@ local function queue_model(model,mat,imat,light,ambience)
 		skip_tris = skip_tris,
 		materials = model.materials,
 		depths = depths,
-		norms = model.norms,
 		lums = lums,
 	})
 	
