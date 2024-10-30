@@ -84,9 +84,10 @@ function _draw()
 	-- To draw a model, you need to add it to the queue with some extra
 	-- information. Both the model matrix is needed for transformations,
 	-- and its inverse for lighting and backface culling.
-	-- The last two arguments are optional light and ambient light values.
-	-- The magnitude of the light vector controls the intensity of the light.
-	Rendering.queue_model(model,model_mat,model_mat_inv,vec(0.7,0.7,0.0),0.1)
+	-- The last three arguments, ambient light, light direction,
+	-- and light intensity, are optional. If no light intensity is given,
+	-- the light is directional, and the magnitude controls the intensity.
+	Rendering.queue_model(model,model_mat,model_mat_inv,0.1,vec(0.7,0.7,0.0))
 	
 	-- Draw and animate a cool grid effect
 	draw_grid(Transform.translate(vec(0,-10,(t()*grid_separation)%grid_spacing)))
@@ -111,5 +112,7 @@ function draw_grid(mat)
 		Rendering.queue_line(v3,v4,8,mat)
 	end
 end
+
+include"error_explorer.lua"
 
 music(0)

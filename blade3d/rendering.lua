@@ -372,9 +372,10 @@ end
 ---@param model table @The model to queue.
 ---@param mat userdata @The model's transformation matrix.
 ---@param imat userdata @The inverse of the model's transformation matrix.
----@param light? userdata @The direction of the light hitting this model, with intensity as the magnitude.
 ---@param ambience? number @The ambient light intensity.
-local function queue_model(model,mat,imat,light,ambience)
+---@param light? userdata @The position of the light source.
+---@param light_intensity? number @The intensity of the light source. If not provided, the light is assumed to be directional, and the intensity is the magnitude of the light vector.
+local function queue_model(model,mat,imat,ambience,light,light_intensity)
 	profile"Backface culling"
 	local skip_tris = {}
 	local face_dists,norms = model.face_dists,model.norms
@@ -421,16 +422,20 @@ local function queue_model(model,mat,imat,light,ambience)
 	local lums
 	if light then
 		light = light or vec(0,0,0)
-		local light_pos = light:matmul3d(imat)
+		-- For directional lights, the position needs to be stripped from the
+		-- inverse matrix.
+		local light_pos = light:matmul3d(
+			light_intensity and imat or imat:copy(0,false,0,12,3)
+		)
 		local light_mag = light_pos:magnitude()
 		local light_dir = light_pos/light_mag
+		local light_falloff = light_intensity and 1/(light_mag*light_mag) or 1
 		lums = (
 				norms:matmul(light_dir:transpose()) -- Dot product
 				+(1+(ambience or 0)) -- Ambient light
-			)*(light_mag*0.5) -- Intensity
+			)*(light_falloff*(light_intensity or light_mag)*0.5) -- Intensity
 	end
 	profile"Lighting"
-	
 	
 	-- The model's data has been, and will be, aggressively mutated, so a new one
 	-- gets created to isolate side effects.
