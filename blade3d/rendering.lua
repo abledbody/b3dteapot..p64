@@ -427,13 +427,17 @@ local function queue_model(model,mat,imat,ambience,light,light_intensity)
 		local light_pos = light:matmul3d(
 			light_intensity and imat or imat:copy(0,false,0,12,3)
 		)
-		local light_mag = light_pos:magnitude()
-		local light_dir = light_pos/light_mag
-		local light_falloff = light_intensity and 1/(light_mag*light_mag) or 1
-		lums = (
-				norms:matmul(light_dir:transpose()) -- Dot product
-				+(1+(ambience or 0)) -- Ambient light
-			)*(light_falloff*(light_intensity or light_mag)*0.5) -- Intensity
+		local light_mag = light_pos:magnitude()+0.00001
+		local illumination = light_intensity
+			and light_intensity/(light_mag*light_mag) -- Inverse square falloff
+			or light_mag
+		
+		lums = (norms:matmul((light_pos/light_mag):transpose())+1) -- Dot product
+			*(illumination*0.5) -- illumination
+			+(ambience or 0) -- Ambient light
+	elseif ambience then
+		lums = userdata("f64",norms:height())
+		lums:copy(ambience,true,0,0,1,0,1,norms:height())
 	end
 	profile"Lighting"
 	
