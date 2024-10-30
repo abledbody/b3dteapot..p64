@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2024-09-04 23:51:40",modified="2024-10-26 19:58:30",revision=202]]
+--[[pod_format="raw",created="2024-09-04 23:51:40",modified="2024-10-30 01:19:02",revision=233]]
 include"require.lua"
 include"profiler.lua"
 
@@ -7,7 +7,6 @@ local Rendering = require"blade3d.rendering"
 local Transform = require"blade3d.transform"
 local Camera = require"blade3d.camera"
 local quat = require"blade3d.quaternions"
-local B3dUtils = require"blade3d.utils"
 
 profile.enabled(false,true)
 
@@ -66,7 +65,7 @@ function _draw()
 	
 	-- Get the model matrix and its inverse. The only transformation is rotation.
 	local model_mat, model_mat_inv =
-		Transform.double_rotate(vec(t()/16,t()/8,t()/32))
+		Transform.double_rotate(vec(sin(t()/19)*0.5,t()/21,cos(t()/27)*0.5))
 	
 	-- Tell Blade3D to draw the model with the given matrix on the next draw_all.
 	Rendering.queue_model(model,model_mat,model_mat_inv,vec(0.70,0.71,0.0))
@@ -94,3 +93,5 @@ function draw_grid(mat)
 		Rendering.queue_line(v3,v4,8,mat)
 	end
 end
+
+music(0)
