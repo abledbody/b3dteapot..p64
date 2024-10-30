@@ -17,9 +17,18 @@ local materials = {
 		shader = require"blade3d.shaders.lambtri",
 		properties = {
 			color_ramp = {32,1,21,5,13,22,6,7},
-			light = true,
 		},
 	},
+	-- If you use this material instead, you can get a texture on the teapot
+	-- instead of shading.
+	--[[
+	Teapot = {
+		shader = require"blade3d.shaders.textri",
+		properties = {
+			tex = 1,
+		},
+	},
+	]]
 }
 
 local model = import_ptm("mdl/teapot.ptm",materials)
@@ -28,7 +37,7 @@ local grid_spacing = 40
 local grid_lines = 20
 local grid_separation = 40
 
-local cam_yaw,cam_pitch = 0,0
+local cam_yaw,cam_pitch = 0.08,-0.03
 local cam_vel = vec(0,0,0)
 local cam_dist = 6
 local cam
@@ -63,12 +72,21 @@ end
 function _draw()
 	cls()
 	
-	-- Get the model matrix and its inverse. The only transformation is rotation.
-	local model_mat, model_mat_inv =
-		Transform.double_rotate(vec(sin(t()/19)*0.5,t()/21,cos(t()/27)*0.5))
+	local rot = vec(
+		cos(t()/19)*0.5,
+		t()/21,
+		cos(t()/27)*0.5
+	)
 	
-	-- Tell Blade3D to draw the model with the given matrix on the next draw_all.
-	Rendering.queue_model(model,model_mat,model_mat_inv,vec(0.70,0.71,0.0))
+	-- Get the model matrix and its inverse. The only transformation is rotation.
+	local model_mat, model_mat_inv = Transform.double_rotate(rot)
+	
+	-- To draw a model, you need to add it to the queue with some extra
+	-- information. Both the model matrix is needed for transformations,
+	-- and its inverse for lighting and backface culling.
+	-- The last two arguments are optional light and ambient light values.
+	-- The magnitude of the light vector controls the intensity of the light.
+	Rendering.queue_model(model,model_mat,model_mat_inv,vec(0.7,0.7,0.0),0.1)
 	
 	-- Draw and animate a cool grid effect
 	draw_grid(Transform.translate(vec(0,-10,(t()*grid_separation)%grid_spacing)))

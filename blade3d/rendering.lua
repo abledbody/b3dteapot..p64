@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2024-05-22 18:18:28",modified="2024-10-26 19:58:30",revision=18407]]
+--[[pod_format="raw",created="2024-05-22 18:18:28",modified="2024-10-30 01:19:02",revision=18436]]
 local Utils = require"blade3d.utils"
 local sort = Utils.tab_sort
 
@@ -252,12 +252,10 @@ local function clip_tris(model)
 end
 
 local function draw_model(model,cts_mul,cts_add,screen_height)
-	local pts,uvs,indices,
-		skip_tris,materials,depths,
-		norms,light_pos =
+	local pts,uvs,indices,skip_tris,materials,depths,lums =
 			model.pts,model.uvs,model.indices,
 			model.skip_tris,model.materials,model.depths,
-			model.norms,model.light_pos
+			model.lums
 	
 	profile"Perspective"
 	pts = perspective_points(pts:copy(pts))
@@ -282,7 +280,7 @@ local function draw_model(model,cts_mul,cts_add,screen_height)
 			local material = materials[j]
 			local shader,properties = material.shader, material.properties
 			local props_in = {
-				light = properties.light and (norms:row(j):dot(light_pos)+1)/2
+				light = lums and lums[j]
 			}
 			setmetatable(props_in,{__index = properties})
 			
@@ -361,15 +359,13 @@ end
 ---@param model table @The model to queue.
 ---@param mat userdata @The model's transformation matrix.
 ---@param imat userdata @The inverse of the model's transformation matrix.
----@param light_vec userdata @The direction of the light hitting this model
-local function queue_model(model,mat,imat,light_vec)
+---@param light? userdata @The direction of the light hitting this model, with intensity as the magnitude.
+---@param ambience? number @The ambient light intensity.
+local function queue_model(model,mat,imat,light,ambience)
 	profile"Backface culling"
 	local skip_tris = {}
-	local face_dists = model.face_dists
+	local face_dists,norms = model.face_dists,model.norms
 	local relative_cam_pos = camera.position:matmul3d(imat)
-	
-	light_vec = light_vec or vec(0,1,0)
-	local light_pos = light_vec:matmul3d(imat)
 	
 	-- Each face, in addition to a normal, has a length. This length is the
 	-- the distance between the origin and the plane that the face sits on, and
@@ -379,7 +375,7 @@ local function queue_model(model,mat,imat,light_vec)
 	
 	-- Did you know that multiplying a matrix by a transposed vector is the same
 	-- as performing a dot product between the matrix's rows and the vector?
-	local dots = model.norms:matmul(relative_cam_pos:transpose())
+	local dots = norms:matmul(relative_cam_pos:transpose())
 	for i = 0,#face_dists-1 do
 		skip_tris[i] = dots[i] < face_dists[i]
 	end
@@ -408,6 +404,21 @@ local function queue_model(model,mat,imat,light_vec)
 	depths:add(cam_sort_points,true,2,0,1,3,1,cam_sort_points:height()) -- Z
 	profile"Depth determination"
 	
+	profile"Lighting"
+	local lums
+	if light then
+		light = light or vec(0,0,0)
+		local light_pos = light:matmul3d(imat)
+		local light_mag = light_pos:magnitude()
+		local light_dir = light_pos/light_mag
+		lums = (
+				norms:matmul(light_dir:transpose()) -- Dot product
+				+(1+(ambience or 0)) -- Ambient light
+			)*(light_mag*0.5) -- Intensity
+	end
+	profile"Lighting"
+	
+	
 	-- The model's data has been, and will be, aggressively mutated, so a new one
 	-- gets created to isolate side effects.
 	add(model_queue,{
@@ -419,7 +430,7 @@ local function queue_model(model,mat,imat,light_vec)
 		materials = model.materials,
 		depths = depths,
 		norms = model.norms,
-		light_pos = light_pos
+		lums = lums,
 	})
 	
 	return true
