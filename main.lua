@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2024-09-04 23:51:40",modified="2024-10-30 01:19:02",revision=233]]
+--[[pod_format="raw",created="2024-09-04 23:51:40",modified="2024-11-06 08:07:27",revision=251]]
 include"require.lua"
 include"profiler.lua"
 
@@ -16,19 +16,15 @@ local materials = {
 	Teapot = {
 		shader = require"blade3d.shaders.lambtri",
 		properties = {
-			color_ramp = {32,1,21,5,13,22,6,7},
+			col = 7,
 		},
 	},
-	-- If you use this material instead, you can get a texture on the teapot
-	-- instead of shading.
-	--[[
-	Teapot = {
-		shader = require"blade3d.shaders.textri",
+	B3DBadge = {
+		shader = require"blade3d.shaders.lambtextri",
 		properties = {
-			tex = 1,
+			tex = 2,
 		},
 	},
-	]]
 }
 
 local model = import_ptm("mdl/teapot.ptm",materials)
@@ -87,7 +83,7 @@ function _draw()
 	-- The last three arguments, ambient light, light direction,
 	-- and light intensity, are optional. If no light intensity is given,
 	-- the light is directional, and the magnitude controls the intensity.
-	Rendering.queue_model(model,model_mat,model_mat_inv,0.1,vec(0.7,0.7,0.0))
+	Rendering.queue_model(model,model_mat,model_mat_inv,0.1,vec(0.8,0.8,0.0))
 	
 	-- Draw and animate a cool grid effect
 	draw_grid(Transform.translate(vec(0,-10,(t()*grid_separation)%grid_spacing)))

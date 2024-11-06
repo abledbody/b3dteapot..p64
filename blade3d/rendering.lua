@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2024-05-22 18:18:28",modified="2024-10-30 01:19:02",revision=18436]]
+--[[pod_format="raw",created="2024-05-22 18:18:28",modified="2024-11-06 08:07:27",revision=18454]]
 local Utils = require"blade3d.utils"
 local sort = Utils.tab_sort
 
@@ -428,12 +428,12 @@ local function queue_model(model,mat,imat,ambience,light,light_intensity)
 			light_intensity and imat or imat:copy(0,false,0,12,3)
 		)
 		local light_mag = light_pos:magnitude()+0.00001
-		local illumination = light_intensity
+		local illuminance = light_intensity
 			and light_intensity/(light_mag*light_mag) -- Inverse square falloff
 			or light_mag
 		
-		lums = (norms:matmul((light_pos/light_mag):transpose())+1) -- Dot product
-			*(illumination*0.5) -- illumination
+		lums = ((norms:matmul((light_pos/light_mag):transpose())*0.5)+0.5) -- Normal contribution
+			*illuminance -- Intensity
 			+(ambience or 0) -- Ambient light
 	elseif ambience then
 		lums = userdata("f64",norms:height())
