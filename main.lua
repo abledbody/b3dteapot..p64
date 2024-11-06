@@ -83,7 +83,7 @@ function _draw()
 	-- The last three arguments, ambient light, light direction,
 	-- and light intensity, are optional. If no light intensity is given,
 	-- the light is directional, and the magnitude controls the intensity.
-	Rendering.queue_model(model,model_mat,model_mat_inv,0.1,vec(0.8,0.8,0.0))
+	Rendering.queue_model(model,model_mat,model_mat_inv,0.05,vec(0.8,0.8,0.0))
 	
 	-- Draw and animate a cool grid effect
 	draw_grid(Transform.translate(vec(0,-10,(t()*grid_separation)%grid_spacing)))
