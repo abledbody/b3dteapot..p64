@@ -50,6 +50,21 @@ do
 end
 Rendering.set_camera(cam)
 
+local function draw_grid(mat)
+	local length = grid_lines*grid_spacing*0.5
+	
+	for x = -grid_lines*0.5, grid_lines*0.5 do
+		local offset = x*grid_spacing
+		local v1 = vec(offset,0,-length,1)
+		local v2 = vec(offset,0,length,1)
+		local v3 = vec(length,0,offset,1)
+		local v4 = vec(-length,0,offset,1)
+		
+		Rendering.queue_line(v1,v2,8,mat)
+		Rendering.queue_line(v3,v4,8,mat)
+	end
+end
+
 function _update()
 	local inputs = vec(
 		(btn(1) or 0)/255 - (btn(0) or 0)/255,
@@ -92,21 +107,6 @@ function _draw()
 	Rendering.draw_all()
 	
 	profile.draw()
-end
-
-function draw_grid(mat)
-	local length = grid_lines*grid_spacing*0.5
-	
-	for x = -grid_lines*0.5, grid_lines*0.5 do
-		local offset = x*grid_spacing
-		local v1 = vec(offset,0,-length,1)
-		local v2 = vec(offset,0,length,1)
-		local v3 = vec(length,0,offset,1)
-		local v4 = vec(-length,0,offset,1)
-		
-		Rendering.queue_line(v1,v2,8,mat)
-		Rendering.queue_line(v3,v4,8,mat)
-	end
 end
 
 include"error_explorer.lua"
