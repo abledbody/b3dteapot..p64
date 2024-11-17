@@ -20,7 +20,6 @@ local lingers = {}
 -- start_profile, stop_profile, and stop_linger are all internal functions,
 -- serving as paths for _profile to take. Lingers share start_profile.
 local function start_profile(name,linger)
-	local source = profiles[name]
 	running[name] = {
 		linger = linger,
 	}
