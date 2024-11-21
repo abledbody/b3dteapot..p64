@@ -20,20 +20,17 @@ local function perspective_points(pts)
 	-- Getting the reciprocals of a userdata is non-trivial. To do it, we
 	-- initialize an array, copy 1 to every element, and then divide that by w.
 	local inv_w = userdata("f64",pts_height)
-	inv_w:copy(1,true,0,0,1,1,1,pts_height)
-	inv_w:div(pts,true,3,0,1,4,1,pts_height)
+		:copy(1,true)
+		:div(pts,true,3,0,1,4,1,pts_height)
 	
 	-- inv_w serves two purposes. The first is so we can put the reciprocals
 	-- of w into the w column, and the second is that we can use the cheaper
 	-- multiplication for XYZ. Unfortunately, we can't do a single operation
 	-- which uses the same w three times, so we split it into XYZ.
-	pts:mul(inv_w,true,0,0,1,1,4,pts_height) -- X
-	pts:mul(inv_w,true,0,1,1,1,4,pts_height) -- Y
-	pts:mul(inv_w,true,0,2,1,1,4,pts_height) -- Z
-	
-	pts:copy(inv_w,true,0,3,1,1,4,pts_height) -- W
-	
-	return pts
+	return pts:mul(inv_w,true,0,0,1,1,4,pts_height) -- X
+		:mul(inv_w,true,0,1,1,1,4,pts_height) -- Y
+		:mul(inv_w,true,0,2,1,1,4,pts_height) -- Z
+		:copy(inv_w,true,0,3,1,1,4,pts_height) -- W
 end
 
 ---Applies perspective division to a single point.
@@ -272,8 +269,8 @@ local function draw_model(model,cts_mul,cts_add,screen_height)
 	
 	profile"Perspective"
 	pts = perspective_points(pts:copy(pts))
-	pts:mul(cts_mul,true,0,0,3,0,4,pts:height())
-	pts:add(cts_add,true,0,0,3,0,4,pts:height())
+		:mul(cts_mul,true,0,0,3,0,4,pts:height())
+		:add(cts_add,true,0,0,3,0,4,pts:height())
 	profile"Perspective"
 	
 	profile"Model iteration"
@@ -413,9 +410,9 @@ local function queue_model(model,mat,imat,ambience,light,light_intensity)
 	-- Since this distance is only used in comparisons, we can cheap out and
 	-- skip the square root.
 	local depths = userdata("f64",cam_sort_points:height())
-	depths:add(cam_sort_points,true,0,0,1,3,1,cam_sort_points:height()) -- X
-	depths:add(cam_sort_points,true,1,0,1,3,1,cam_sort_points:height()) -- Y
-	depths:add(cam_sort_points,true,2,0,1,3,1,cam_sort_points:height()) -- Z
+		:add(cam_sort_points,true,0,0,1,3,1,cam_sort_points:height()) -- X
+		:add(cam_sort_points,true,1,0,1,3,1,cam_sort_points:height()) -- Y
+		:add(cam_sort_points,true,2,0,1,3,1,cam_sort_points:height()) -- Z
 	profile"Depth determination"
 	
 	profile"Lighting"
