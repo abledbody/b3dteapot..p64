@@ -418,7 +418,6 @@ local function queue_model(model,mat,imat,ambience,light,light_intensity)
 	profile"Lighting"
 	local lums
 	if light then
-		light = light or vec(0,0,0)
 		-- For directional lights, the position needs to be stripped from the
 		-- inverse matrix.
 		local light_pos = light:matmul3d(
