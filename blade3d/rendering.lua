@@ -276,27 +276,24 @@ local function draw_model(model,cts_mul,cts_add,screen_height)
 	profile"Perspective"
 	
 	profile"Model iteration"
+	local unpacked_verts = userdata("f64",6,#indices)
+	pts:copy(indices,unpacked_verts,0,0,4,1,6,#indices)
+	unpacked_verts:copy(uvs,true,0,4,2,2,6,uvs:height())
+	
 	for j = 0,indices:height()-1 do
 		if not skip_tris[j] then
-			local tri_i = j*3
-			-- To be able to use the userdata sort, we have to pack all
-			-- the data for each vertex into the rows of a matrix.
 			local vert_data = userdata("f64",6,3)
-				:copy(pts,true,indices[tri_i],0,4)
-				:copy(pts,true,indices[tri_i+1],6,4)
-				:copy(pts,true,indices[tri_i+2],12,4)
-				:copy(uvs,true,tri_i*2,4,2,2,6,3)
+				:copy(unpacked_verts,true,j*18,0,18)
 			
 			local material = materials[j]
-			local shader,properties = material.shader, material.properties
 			local props_in = {
 				light = lums and lums[j]
 			}
-			setmetatable(props_in,{__index = properties})
+			setmetatable(props_in,{__index = material.properties})
 			
 			add(draw_queue,{
 				func = function()
-					shader(props_in,vert_data,screen_height)
+					material.shader(props_in,vert_data,screen_height)
 				end,
 				z = depths[j]
 			})
