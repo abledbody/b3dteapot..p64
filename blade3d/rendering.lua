@@ -53,77 +53,83 @@ local function clip_tris(model)
 	local tri_clips = {}
 	local quad_clips = {}
 	for i = 0,indices:height()-1 do
-		if not skip_tris[i] then
-			local i1,i2,i3 = indices:get(0,i,3)
-			local p1,p2,p3 =
-				pts:row(i1/4),
-				pts:row(i2/4),
-				pts:row(i3/4)
-			local w1,w2,w3 = p1[3],p2[3],p3[3]
-			
-			-- The near clipping plane is the only one that's actually clipped.
-			-- Truncation is cheaper on the edges, and culling entire triangles
-			-- is cheaper than that.
-			local n1,n2,n3 =
-				p1.z > w1,
-				p2.z > w2,
-				p3.z > w3
-			
-			if (n1 and n2 and n3)
-				or (p1.x < -w1 and p2.x < -w2 and p3.x < -w3)
-				or (p1.x >  w1 and p2.x >  w2 and p3.x >  w3)
-				or (p1.y < -w1 and p2.y < -w2 and p3.y < -w3)
-				or (p1.y >  w1 and p2.y >  w2 and p3.y >  w3)
-			then
-				skip_tris[i] = true
-			-- We know that at least one vertex is inside the frustum.
-			-- If any of them are outside the near plane, we need to clip.
-			elseif n1 or n2 or n3 then
-				-- Instead of modifying the existing triangle, we disable this
-				-- one and provide a list of new generated ones.
-				skip_tris[i] = true
-				local iuv = i*3
-				
-				-- UVs are per-triangle.
-				local uv1,uv2,uv3 =
-					uvs:row(iuv),
-					uvs:row(iuv+1),
-					uvs:row(iuv+2)
-				
-				-- "Inside" and "outside" referring to the frustum.
-				local inside = {}
-				local outside = {}
-				-- By including the original index of the vertex, we can
-				-- determine how to write the new vertices to maintain
-				-- the winding order, even though we're scrambling the
-				-- order so we know which ones are inside and outside.
-				add(n1 and outside or inside, {p1,uv1,1})
-				add(n2 and outside or inside, {p2,uv2,2})
-				add(n3 and outside or inside, {p3,uv3,3})
-				
-				-- If two vertices are inside, and one is outside, the cut
-				-- is an entirely new edge, so we need a quad. If only one
-				-- is inside, the cut is essentially one of the existing
-				-- edges. A slightly smaller triangle is enough.
-				if #outside == 1 then
-					add(
-						quad_clips,
-						{
-							inside[1],inside[2],outside[1],
-							materials[i],depths[i],lums and lums[i]
-						}
-					)
-				else
-					add(
-						tri_clips,
-						{
-							inside[1],outside[1],outside[2],
-							materials[i],depths[i],lums and lums[i]
-						}
-					)
-				end
-			end
+		if skip_tris[i] then goto next_tri end
+
+		local i1,i2,i3 = indices:get(0,i,3)
+		local p1,p2,p3 =
+			pts:row(i1/4),
+			pts:row(i2/4),
+			pts:row(i3/4)
+		local w1,w2,w3 = p1[3],p2[3],p3[3]
+		
+		-- The near clipping plane is the only one that's actually clipped.
+		-- Truncation is cheaper on the edges, and culling entire triangles
+		-- is cheaper than that.
+		local n1,n2,n3 =
+			p1.z > w1,
+			p2.z > w2,
+			p3.z > w3
+		
+		-- If all three vertices are behind a clipping plane, discard the
+		-- triangle.
+		if (n1 and n2 and n3)
+			or (p1.x < -w1 and p2.x < -w2 and p3.x < -w3)
+			or (p1.x >  w1 and p2.x >  w2 and p3.x >  w3)
+			or (p1.y < -w1 and p2.y < -w2 and p3.y < -w3)
+			or (p1.y >  w1 and p2.y >  w2 and p3.y >  w3)
+		then
+			skip_tris[i] = true
+			goto next_tri
 		end
+	
+		-- If all vertices are in front of the near plane, we don't need to clip.
+		if not (n1 or n2 or n3) then goto next_tri end
+
+		-- Instead of modifying the existing triangle, we disable this
+		-- one and provide a list of new generated ones.
+		skip_tris[i] = true
+		local iuv = i*3
+		
+		-- UVs are per-triangle.
+		local uv1,uv2,uv3 =
+			uvs:row(iuv),
+			uvs:row(iuv+1),
+			uvs:row(iuv+2)
+		
+		-- "Inside" and "outside" referring to the frustum.
+		local inside = {}
+		local outside = {}
+		-- By including the original index of the vertex, we can
+		-- determine how to write the new vertices to maintain
+		-- the winding order, even though we're scrambling the
+		-- order so we know which ones are inside and outside.
+		add(n1 and outside or inside, {p1,uv1,1})
+		add(n2 and outside or inside, {p2,uv2,2})
+		add(n3 and outside or inside, {p3,uv3,3})
+		
+		-- If two vertices are inside, and one is outside, the cut
+		-- is an entirely new edge, so we need a quad. If only one
+		-- is inside, the cut is essentially one of the existing
+		-- edges. A slightly smaller triangle is enough.
+		if #outside == 1 then
+			add(
+				quad_clips,
+				{
+					inside[1],inside[2],outside[1],
+					materials[i],depths[i],lums and lums[i]
+				}
+			)
+		else
+			add(
+				tri_clips,
+				{
+					inside[1],outside[1],outside[2],
+					materials[i],depths[i],lums and lums[i]
+				}
+			)
+		end
+
+		::next_tri::
 	end
 	
 	-- We know ahead of time how many triangles we need to generate, so these
