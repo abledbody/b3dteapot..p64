@@ -425,7 +425,7 @@ local function queue_model(model,mat,imat,ambience,light,light_intensity)
 			and light_intensity/(light_mag*light_mag) -- Inverse square falloff
 			or light_mag
 		
-		lums = ((norms:matmul((light_pos/light_mag):transpose())*0.5)+0.5) -- Normal contribution
+		lums = norms:matmul((light_pos/light_mag):transpose()):max(0) -- Normal contribution
 			*illuminance -- Intensity
 			+(ambience or 0) -- Ambient light
 	elseif ambience then
