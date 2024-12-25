@@ -433,10 +433,12 @@ local function queue_model(model,mat,imat,ambience,light,light_intensity)
 		
 		lums = norms:matmul((light_pos/light_mag):transpose()):max(0) -- Normal contribution
 			*illuminance -- Intensity
-			+(ambience or 0) -- Ambient light
+		if ambience then
+			lums += ambience -- Ambient light
+		end
 	elseif ambience then
 		lums = userdata("f64",norms:height())
-		lums:copy(ambience,true,0,0,1,0,1,norms:height())
+			:copy(ambience,true,0,0,1,0,1,norms:height())
 	end
 	profile"Lighting"
 	
