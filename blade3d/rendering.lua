@@ -141,7 +141,7 @@ local function clip_tris(model)
 	
 	local gen_pts = userdata("f64",4,gen_vert_count)
 	local gen_uvs = userdata("f64",2,gen_tri_count*3)
-	local gen_indices = userdata("i64",3,gen_tri_count)
+	local gen_indices = userdata("i32",3,gen_tri_count)
 	local gen_materials = {}
 	local gen_depths = userdata("f64",gen_tri_count)
 	local gen_lums = lums and userdata("f64",gen_tri_count)
