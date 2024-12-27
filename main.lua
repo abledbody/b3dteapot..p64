@@ -15,13 +15,13 @@ profile.enabled(false,true)
 local materials = {
 	Teapot = {
 		shader = require"blade3d.shaders.lambtri",
-		properties = {
+		__index = {
 			col = 7,
 		},
 	},
 	B3DBadge = {
 		shader = require"blade3d.shaders.lambtextri",
-		properties = {
+		__index = {
 			tex = 2,
 		},
 	},

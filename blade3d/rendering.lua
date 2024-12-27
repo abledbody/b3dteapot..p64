@@ -292,10 +292,7 @@ local function draw_model(model,cts_mul,cts_add,screen_height)
 				:copy(unpacked_verts,true,j*18,0,18)
 			
 			local material = materials[j]
-			local props_in = {
-				light = lums and lums[j]
-			}
-			setmetatable(props_in,{__index = material.properties})
+			local props_in = setmetatable({light = lums and lums[j]},material)
 			
 			add(draw_queue,{
 				func = function()
