@@ -77,14 +77,14 @@ local function clip_tris(model)
 				or (p1.y < -w1 and p2.y < -w2 and p3.y < -w3)
 				or (p1.y >  w1 and p2.y >  w2 and p3.y >  w3)
 			then
-				skip_tris[i] = true
+				skip_tris[i] = 1
 				-- If all vertices are in front of the near plane,
 				-- we don't need to clip.
 			elseif n1 or n2 or n3 then
 				
 				-- Instead of modifying the existing triangle, we disable this
 				-- one and provide a list of new generated ones.
-				skip_tris[i] = true
+				skip_tris[i] = 1
 				local iuv = i*3
 				
 				-- UVs are per-triangle.
