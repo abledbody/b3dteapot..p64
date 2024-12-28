@@ -29,7 +29,6 @@ local function perspective_points(pts)
 	-- which uses the same w three times, so we split it into XYZ.
 	return pts:mul(inv_w,true,0,0,1,1,4,pts_height) -- X
 		:mul(inv_w,true,0,1,1,1,4,pts_height) -- Y
-		:mul(inv_w,true,0,2,1,1,4,pts_height) -- Z
 		:copy(inv_w,true,0,3,1,1,4,pts_height) -- W
 end
 
@@ -65,9 +64,9 @@ local function clip_tris(model)
 			-- Truncation is cheaper on the edges, and culling entire triangles
 			-- is cheaper than that.
 			local n1,n2,n3 =
-				p1.z > w1,
-				p2.z > w2,
-				p3.z > w3
+				p1.z < 0,
+				p2.z < 0,
+				p3.z < 0
 			
 			-- If all three vertices are behind a clipping plane, discard the
 			-- triangle.
@@ -161,12 +160,10 @@ local function clip_tris(model)
 		
 		-- Deltas are very useful for interpolation.
 		local diff2,diff3 = p2-p1,p3-p1
-		-- Oh yeah baby, ultra weird clip space inverse lerp math.
-		-- Frankly, I don't think I understand it myself.
-		local mul = p1.z-p1[3]
+
 		local t2,t3 =
-			mul/(diff2.z+diff2[3]),
-			mul/(diff3.z+diff3[3])
+			-p1.z/diff2.z,
+			-p1.z/diff3.z
 		
 		-- Lerp to get the vertices at the clipping plane.
 		p2,p3 = diff2*t2+p1,diff3*t3+p1
@@ -208,10 +205,9 @@ local function clip_tris(model)
 		local uv1,uv2,uv3 = v1[2],v2[2],v3[2]
 		
 		local diff1,diff2 = p1-p3,p2-p3
-		local mul = p3.z-p3[3]
 		local t1,t2 =
-			mul/(diff1.z+diff1[3]),
-			mul/(diff2.z+diff2[3])
+			-p3.z/diff1.z,
+			-p3.z/diff2.z
 		
 		-- We need to generate one extra vertex for the quad.
 		local p4 = diff2*t2+p3

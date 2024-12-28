@@ -41,7 +41,7 @@ do
 	local cam_rot = quat.mul(quat(vec(0,1,0),cam_yaw),quat(vec(1,0,0),cam_pitch))
 	window() -- For some reason get_display doesn't work without this.
 	cam = Camera.new(
-		0.1,100, -- Near and far planes
+		0.3,100, -- Near and far planes
 		Camera.get_fov_slope(100), -- FOV
 		get_display(), -- Target display userdata
 		quat.vmul(vec(0,0,cam_dist),cam_rot), -- Position
